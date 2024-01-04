@@ -1,0 +1,105 @@
+#!/bin/sh
+
+################################################################################
+#
+# unescape-ssv - Unescape SSV-escaped string.
+#
+################################################################################
+
+### Boilerplate.
+set -eu; umask 0022; export LC_ALL=C
+if _posix_path="$(command -p getconf PATH 2>/dev/null)"; then
+	PATH="$_posix_path${PATH+:}${PATH:-}"
+fi
+export UNIX_STD=2003 POSIXLY_CORRECT=1
+
+### Usages.
+usage() {
+	_redirect_to=2
+	case $1 in 0) _redirect_to=1;; esac
+	cat 1>&$_redirect_to <<-'USAGE' 
+	Usage: ${0##*/} [--addional-escapes] [--one-line-output]
+	USAGE
+	exit $1
+}
+
+### Params.
+one_line_output=
+additional_escapes=
+
+### Parse Args.
+while :; do
+	case $# in 0) break;; esac
+	case $1 in -|[!-]*) break;; esac
+	case $1 in -h|--help|--usage) usage 0;; esac
+
+	case $1 in
+		--additional-escapes) additional_escapes=1;;
+		--one-line-output) one_line_output=1;;
+		-?*) usage 1;;
+	esac
+	
+	shift 1
+done
+
+case $additional_escapes in 1)
+additional_escapes='
+	escape_table["\\a"] = "\a";
+	escape_table["\\b"] = "\b";
+	escape_table["\\f"] = "\f";
+	escape_table["\\r"] = "\r";
+	escape_table["\\v"] = "\v";
+		'
+esac
+
+un_one_line_output='
+	escape_table["\\n"] = "\n";
+'
+case $one_line_output in 1)
+	un_one_line_output=''
+esac
+
+awk -v MyName="${0##*/}" '
+BEGIN {
+	OFS = ORS = "";
+
+	_s_accepted_escapes="\\a \\b \\f \\r \\v \\n \\_ \\\\ \\t";
+	split(_s_accepted_escapes, _a, " ");
+	for ( i in _a ) {
+		key = _a[i];
+		accepted_escapes[key] = "";
+	}
+
+	escape_table["\\_"] = "_";
+	escape_table["\\\\"] = "\\";
+	escape_table["\\t"] = "\t";
+	'"$un_one_line_output"'
+	'"$additional_escapes"'
+}
+
+{
+	Length = length($0);
+	for ( i = 1; i <= Length; i++ ) {
+		C = substr($0, i, 1);
+		escaped = "";
+		if ( C == "\\" ) {
+			nextC = substr($0, ++i, 1);
+			escaped = C nextC;
+		}
+
+		if ( C == "_" ) {
+			print " ";
+		} else if ( C != "_" && escaped == "" ) {
+			print C;
+		} else if ( escaped in escape_table ) {
+			print escape_table[escaped];
+		} else if ( escaped in accepted_escapes ) {
+			print escaped;
+		} else {
+			printf "%s: WTF UNKNOWN ESCAPE: %s\n", MyName, escaped | "cat 1>&2";
+			exit 1;
+		}
+	}
+
+	print "\n";
+}'

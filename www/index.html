@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang=en>
+<meta charset=UTF-8>
+<title>TODO app</title>
+<body>
+<h1>TODO app</h1>
+<h2>Add a TODO</h2>
+<textarea id=new-todo>
+</textarea>
+<button id=add-new-todo>
+	Add a TODO
+</button>
+
+<h2>My TODOs</h2>
+<div>
+	<ul id=list-todos>
+	</ul>
+</div>
+
+<h2>As API usage</h2>
+<h3>APIs</h3>
+<dl>
+	<dt>GET /list-todos.cgi
+	<dd>List register TODOs. 
+	<dt>GET /get-todo-by-id.cgi?<var>ID</var>
+	<dd>Get a to-do with specified <var>ID</var>. The return can be 200 or 404.
+	<dt>POST /add-todo.cgi
+	<dd>Register new to-do. When 200, the one column with such to-do is return.
+</dl>
+
+<h3>Data format</h3>
+Those APIs shall respond each to-do's as a record-oriented (separated by LFs) text,
+whose each row represents each to-do.
+1st and 2nd items are delimined by one or more spaces and tabs.
+2nd and 3rd items are delimined by exactly one space.
+
+<p>
+1st item: ID
+<p>
+2nd item: timestamp (YYYY-mm-dd_HH:MM:SS) when registered
+<p>
+3rd item: content of to-do (LF and backslash are represented as "\n" and "\\".
+Can include spaces and tabs.
+
+<script src=main.js></script>

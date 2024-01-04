@@ -1,0 +1,90 @@
+#!/bin/sh
+
+################################################################################
+#
+# escape-to-ssv: Escape string data to SSV-compatible
+#
+################################################################################
+
+### Boilerplate.
+set -eu; umask 0022; export LC_ALL=C
+if _posix_path="$(command -p getconf PATH 2>/dev/null)"; then
+	PATH="$_posix_path${PATH+:}${PATH:-}"
+fi
+export UNIX_STD=2003 POSIXLY_CORRECT=1
+
+### Usages.
+usage() {
+	_redirect_to=2
+	case $1 in 0) _redirect_to=1;; esac
+	cat 1>&$_redirect_to <<-'USAGE' 
+	Usage: ${0##*/} [--addional-escapes]
+	USAGE
+	exit $1
+}
+
+### Params.
+additional_escapes=
+
+### Parse Args.
+while :; do
+	case $# in 0) break;; esac
+	case $1 in -|[!-]*) break;; esac
+	case $1 in -h|--help|--usage) usage 0;; esac
+
+	case $1 in --additional-escapes) additional_escapes=1
+		;; -?*) usage 1
+		;;
+	esac
+	
+	shift 1
+done
+
+case $additional_escapes in 1)
+additional_escapes='
+		} else if ( C == "\a" ) {
+			print "\\a";
+		} else if ( C == "\b" ) {
+			print "\\b";
+		} else if ( C == "\f" ) {
+			print "\\f";
+		} else if ( C == "\r" ) {
+			print "\\r";
+		} else if ( C == "\v" ) {
+			print "\\v";
+		'
+esac
+
+awk '
+BEGIN {
+	OFS = ORS = "";
+	linesep = "";
+}
+
+{
+	print linesep;
+	linesep = "\\n";
+
+	Length = length($0);
+
+	for ( i = 1; i<= Length; i++ ) {
+		C = substr($0, i, 1);
+
+		if ( C == "_" ) {
+			print "\\_";
+		} else if ( C == "\\" ) {
+			print "\\\\";
+		} else if ( C == " " ) {
+			print "_";
+		} else if ( C == "\t" ) {
+			print "\\t";
+		'"$additional_escapes"'
+		} else {
+			print C;
+		}
+	}
+}
+
+END {
+	print "\n";
+}'
