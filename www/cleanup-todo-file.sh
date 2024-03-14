@@ -14,7 +14,6 @@ I_AM_AT="$( dirname -- "$0" )"
 file_todos="$DIR_DB/todos.txt"
 
 if ! [ -f "$file_todos" ]; then
-	if ! : > "$file_todos"; then
 	cat <<-'err'
 	Status: 500 Internal Server Error
 	Content-Type: text/plain
@@ -23,14 +22,14 @@ if ! [ -f "$file_todos" ]; then
 	err
 
 	exit 1
-	fi
 fi
 
+awk 'NF==3' "$file_todos" | sort -nk1 > "$file_todos.tmp"
+mv "$file_todos.tmp" "$file_todos"
+
 cat <<-header
-Content-Type: text/plain; charset=UTF-8
-Content-Length: $( wc -c < "$file_todos" )
+Status: 204 No Content
 
 header
 
-cat "$file_todos"
 exit 0

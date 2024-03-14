@@ -2,6 +2,7 @@
 <html lang=en>
 <meta charset=UTF-8>
 <title>TODO app</title>
+<link rel=stylesheet href=style.css>
 <body>
 <h1>TODO app</h1>
 <h2>Add a TODO</h2>
@@ -11,7 +12,13 @@
 	Add a TODO
 </button>
 
+<h2>Delete selected TODOs</h2>
+<button id=delete-selected-todos>
+	Delete selected TODOs
+</button>
+
 <h2>My TODOs</h2>
+<p>Click to-do to select/unselect for deletion.
 <div>
 	<ul id=list-todos>
 	</ul>
@@ -20,12 +27,14 @@
 <h2>As API usage</h2>
 <h3>APIs</h3>
 <dl>
-	<dt>GET /list-todos.cgi
+	<dt>GET /todo
 	<dd>List register TODOs. 
-	<dt>GET /get-todo-by-id.cgi?<var>ID</var>
-	<dd>Get a to-do with specified <var>ID</var>. The return can be 200 or 404.
-	<dt>POST /add-todo.cgi
+	<dt>GET /todo/<var>ID</var>
+	<dd>Get a to-do with specified <var>ID</var>. Returns 200 or 404.
+	<dt>POST /todo
 	<dd>Register new to-do. When 200, the one column with such to-do is return.
+	<dt>DELETE /todo/<var>ID</var>
+	<dd>Delete a to-do with specified <var>ID</var> Returns 204 or 404.
 </dl>
 
 <h3>Data format</h3>
@@ -35,7 +44,7 @@ whose each row represents each to-do.
 2nd and 3rd items are delimined by exactly one space.
 
 <p>
-1st item: ID
+1st item: ID (nonnegative integer)
 <p>
 2nd item: timestamp (YYYY-mm-dd_HH:MM:SS) when registered
 <p>

@@ -14,14 +14,16 @@ I_AM_AT="$( dirname -- "$0" )"
 file_todos="$DIR_DB/todos.txt"
 
 if ! [ -f "$file_todos" ]; then
-	cat <<-'err'
-	Status: 500 Internal Server Error
-	Content-Type: text/plain
+	if ! : > "$file_todos"; then
+		cat <<-'err'
+		Status: 500 Internal Server Error
+		Content-Type: text/plain
 
-	Missing TODO file; why?
-	err
+		Missing TODO file; why?
+		err
 
-	exit 1
+		exit 1
+	fi
 fi
 
 case "$REQUEST_METHOD" in POST)
@@ -64,6 +66,9 @@ f_result="$tmpdir/result"
 
 # So what is ID?
 last_id="$( self 1 "$file_todos" | sort -rnk1 | head -n1 )"
+case last_id in '')
+	last_id=0
+esac
 
 # Get content of my to-do.
 if ! dd status=none bs=1 count="$CONTENT_LENGTH"; then
@@ -117,7 +122,6 @@ if [ -s "f_errmsg" ]; then
 	Status: 400 Bad Request
 	Content-Type: text/plain
 	
-
 	head_err
 	cat "$f_errmsg"
 	__exit_trap__ 1

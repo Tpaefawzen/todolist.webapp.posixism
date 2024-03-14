@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# 総合したやつ
+
+# Boilerplate
+set -e;umask 0022;export LC_ALL=C
+if _p="$(command -p getconf PATH 2>/dev/null)"; then
+	export PATH="${_p}${PATH+:}${PATH:-}"
+fi
+export UNIX_STD=2003 POSIXLY_CORRECT=1
+
+case "$REQUEST_METHOD $PATH_INFO" in
+'GET '|'GET /')
+	# GET /todo
+	exec ./list-todos.cgi
+	;;
+'GET /'[0-9]*)
+	# GET /todo/[0-9]+
+	export QUERY_STRING="${PATH_INFO#/}"
+	exec ./get-todo-by-id.cgi
+	;;
+'POST '|'POST /')
+	# POST /todo
+	exec ./add-todo.cgi
+	;;
+'DELETE /'[0-9]*)
+	exec ./delete-todo-with-id.cgi
+	;;
+*)
+	# ???
+	cat <<-'.'
+	Status: 400 Bad Request
+	Content-Length: 1
+
+	?
+	.
+	;;
+esac
