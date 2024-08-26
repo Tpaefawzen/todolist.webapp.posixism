@@ -11,13 +11,17 @@ export UNIX_STD=2003 POSIXLY_CORRECT=1
 
 case "$REQUEST_METHOD $PATH_INFO" in
 'GET '|'GET /')
+	cat <<-'.'
+	Location: /list-todos.cgi
+
+	.
 	# GET /todo
-	exec ./list-todos.cgi
+	#exec ./list-todos.cgi
 	;;
 'GET /'[0-9]*)
 	# GET /todo/[0-9]+
-	export QUERY_STRING="${PATH_INFO#/}"
-	exec ./get-todo-by-id.cgi
+ 	export QUERY_STRING="${PATH_INFO#/}"
+ 	exec ./get-todo-by-id.cgi
 	;;
 'POST '|'POST /')
 	# POST /todo
@@ -30,7 +34,7 @@ case "$REQUEST_METHOD $PATH_INFO" in
 	# ???
 	cat <<-'.'
 	Status: 400 Bad Request
-	Content-Length: 1
+	Content-Type: text/plain
 
 	?
 	.
